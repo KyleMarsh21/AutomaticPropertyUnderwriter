@@ -1,0 +1,463 @@
+Option Explicit
+
+Function IsWorkBookOpen(Name As String) As Boolean
+    Dim xWb As Workbook
+    On Error Resume Next
+    Set xWb = Application.Workbooks.Item(Name)
+    IsWorkBookOpen = (Not xWb Is Nothing)
+End Function
+
+Sub New_Property_Via_Python()
+    
+    Dim Website As String
+    Dim request As Object
+    Dim response As String
+    Dim address As Variant
+    Dim html As New HTMLDocument
+    Dim pic As Picture
+    Dim wsmain As Worksheet
+    Dim URL As String
+    
+    URL = InputBox("Paste listing URL here:")
+    If URL = vbNullString Then
+        Exit Sub
+    End If
+    
+    Dim num_comps As Integer
+    num_comps = InputBox("How many listing comps would you like to include?")
+    If IsNull(num_comps) Then
+        Exit Sub
+    End If
+    If num_comps > 50 Then
+        MsgBox ("Comp request size too large, please enter number less than 50")
+        Exit Sub
+    End If
+    
+    Set wsmain = Sheets("Property Details")
+    For Each pic In wsmain.Pictures
+        pic.Delete
+    Next pic
+    
+    With ActiveWorkbook
+        .Worksheets("Data_outputs").Cells.ClearContents
+        .Worksheets("Sample_outputs").Cells.ClearContents
+        .Worksheets("Data_outputs").Cells.ClearFormats
+        .Worksheets("Sample_outputs").Cells.ClearFormats
+    End With
+    
+    Sheets("Data_outputs").Range("A2").Value = num_comps
+    Sheets("Data_outputs").Range("A2").numberformat = "0"
+    Sheets("Data_outputs").Range("A1").Value = URL
+
+    Dim xRet As Boolean
+    xRet = IsWorkBookOpen("OutputData.xlsx")
+    If xRet Then
+        Workbooks("OutputData").Close _
+        SaveChanges:=True
+    Else
+        
+    End If
+
+    Dim waitOnReturn As Boolean: waitOnReturn = True
+    Dim windowStyle As Integer: windowStyle = 1
+    Dim objShell As Object
+    Dim PythonExe, PythonScript As String
+    ActiveWorkbook.Save
+    ChDir ActiveWorkbook.Path
+    
+    Set objShell = VBA.CreateObject("Wscript.Shell")
+    
+    PythonExe = """C:\Users\Kyle\AppData\Local\Programs\Python\Python310\python.exe"""
+    
+    PythonScript = """C:\Users\Kyle\Desktop\ExperimentFolder\LoopnetWebscrapeCode.py"""
+    
+    objShell.Run PythonExe & PythonScript, windowStyle, waitOnReturn
+
+    With ActiveWorkbook
+        .Worksheets("Data_outputs").Cells.ClearContents
+        .Worksheets("Sample_outputs").Cells.ClearContents
+        .Worksheets("Data_outputs").Cells.ClearFormats
+        .Worksheets("Sample_outputs").Cells.ClearFormats
+    End With
+    
+    Worksheets("Market Sample").Activate
+    
+    Workbooks.Open ("C:\Users\Kyle\Desktop\ExperimentFolder\OutputData.xlsx")
+
+    Workbooks("OutputData.xlsx").Worksheets("Sheet_1").Range("A1:E20").Copy _
+    Workbooks("AutomaticPropertyUnderwriter.xlsm").Worksheets("Data_outputs").Range("G6")
+    
+    Workbooks("OutputData.xlsx").Worksheets("Sheet_2").Range("A1:E10").Copy _
+    Workbooks("AutomaticPropertyUnderwriter.xlsm").Worksheets("Data_outputs").Range("A24")
+    
+    Workbooks("OutputData.xlsx").Worksheets("Sheet_3").Range("A1:D10").Copy _
+    Workbooks("AutomaticPropertyUnderwriter.xlsm").Worksheets("Data_outputs").Range("A12")
+    
+    Workbooks("OutputData.xlsx").Worksheets("Sheet_4").Range("A1:O60").Copy _
+    Workbooks("AutomaticPropertyUnderwriter.xlsm").Worksheets("Sample_outputs").Range("A1")
+    
+    Workbooks("OutputData.xlsx").Worksheets("Sheet_5").Range("A1:A4").Copy _
+    Workbooks("AutomaticPropertyUnderwriter.xlsm").Worksheets("Data_outputs").Range("G1")
+    
+    Workbooks("OutputData").Close _
+    SaveChanges:=True
+    
+    Sheets("Property Details").Range("B10:B25").HorizontalAlignment = xlLeft
+    
+    Application.Wait (Now + TimeValue("0:00:02"))
+    Sheets("Market Sample").Range("AB62").Value = 90
+
+    Dim i As Integer
+    Dim j As Integer
+    Dim ws As Worksheet
+    j = 1
+    
+    Set ws = ActiveWorkbook.Sheets("Market Sample")
+    
+    ws.Range("AO4:AS65").ClearContents
+    ws.Range("BB4:BF65").ClearContents
+    
+    For i = 1 To 50
+        If WorksheetFunction.IsNumber(Cells(i + 3, 34)) Then
+            ws.Cells(j + 3, 41).Value = ws.Cells(i + 3, 34).Value
+            ws.Cells(j + 3, 42).Value = ws.Cells(i + 3, 35).Value
+            ws.Cells(j + 3, 43).Value = ws.Cells(i + 3, 36).Value
+            ws.Cells(j + 3, 44).Value = ws.Cells(i + 3, 37).Value
+            ws.Cells(j + 3, 45).Value = ws.Cells(i + 3, 38).Value
+            j = j + 1
+        Else
+            
+        End If
+    Next i
+            
+    ws.Range("AO60:AS65").Value = WorksheetFunction.LinEst(ws.Range(ws.Cells(4, 45), ws.Cells(j + 2, 45)), ws.Range(Cells(4, 41), ws.Cells(j + 2, 44)), , True)
+    
+    j = 1
+    i = 0
+    
+    For i = 1 To 50
+        If WorksheetFunction.IsNumber(Cells(i + 3, 48)) Then
+            ws.Cells(j + 3, 54).Value = ws.Cells(i + 3, 48).Value
+            ws.Cells(j + 3, 55).Value = ws.Cells(i + 3, 49).Value
+            ws.Cells(j + 3, 56).Value = ws.Cells(i + 3, 50).Value
+            ws.Cells(j + 3, 57).Value = ws.Cells(i + 3, 51).Value
+            ws.Cells(j + 3, 58).Value = ws.Cells(i + 3, 52).Value
+            j = j + 1
+        Else
+            
+        End If
+    Next i
+               
+    ws.Range("BB60:BF64").Value = WorksheetFunction.LinEst(ws.Range(ws.Cells(4, 58), ws.Cells(j + 2, 58)), ws.Range(ws.Cells(4, 54), ws.Cells(j + 2, 57)), , True)
+    
+    Dim link1 As String
+    Dim link2 As String
+    Dim link3 As String
+    
+    Worksheets("Data_outputs").Range("A4").Value = Worksheets("Comps").Range("D18").Value
+    Worksheets("Data_outputs").Range("A5").Value = Worksheets("Comps").Range("E18").Value
+    Worksheets("Data_outputs").Range("A6").Value = Worksheets("Comps").Range("F18").Value
+    
+    link1 = Worksheets("Data_outputs").Range("A4").Value
+    link2 = Worksheets("Data_outputs").Range("A5").Value
+    link3 = Worksheets("Data_outputs").Range("A6").Value
+    
+    ActiveWorkbook.Save
+     
+    Set objShell = VBA.CreateObject("Wscript.Shell")
+    
+    PythonExe = """C:\Users\Kyle\AppData\Local\Programs\Python\Python310\python.exe"""
+    
+    PythonScript = """C:\Users\Kyle\Desktop\ExperimentFolder\Compcode.py"""
+    
+    objShell.Run PythonExe & PythonScript, windowStyle, waitOnReturn
+    
+    Worksheets("Data_outputs").Range("A4:A6").ClearContents
+    
+    Workbooks.Open ("C:\Users\Kyle\Desktop\ExperimentFolder\OutputData.xlsx")
+
+    Workbooks("OutputData.xlsx").Worksheets("Sheet_6").Range("A1:C20").Copy _
+    Workbooks("AutomaticPropertyUnderwriter.xlsm").Worksheets("Data_outputs").Range("A35")
+    
+    Workbooks("OutputData.xlsx").Worksheets("Sheet_9").Range("A1:C20").Copy _
+    Workbooks("AutomaticPropertyUnderwriter.xlsm").Worksheets("Data_outputs").Range("D35")
+    
+    Workbooks("OutputData.xlsx").Worksheets("Sheet_12").Range("A1:C20").Copy _
+    Workbooks("AutomaticPropertyUnderwriter.xlsm").Worksheets("Data_outputs").Range("G35")
+    
+    Workbooks("OutputData.xlsx").Worksheets("Sheet_7").Range("A1:E10").Copy _
+    Workbooks("AutomaticPropertyUnderwriter.xlsm").Worksheets("Data_outputs").Range("A55")
+    
+    Workbooks("OutputData.xlsx").Worksheets("Sheet_10").Range("A1:E10").Copy _
+    Workbooks("AutomaticPropertyUnderwriter.xlsm").Worksheets("Data_outputs").Range("A65")
+    
+    Workbooks("OutputData.xlsx").Worksheets("Sheet_13").Range("A1:E10").Copy _
+    Workbooks("AutomaticPropertyUnderwriter.xlsm").Worksheets("Data_outputs").Range("A75")
+    
+    Workbooks("OutputData.xlsx").Worksheets("Sheet_8").Range("A1:D10").Copy _
+    Workbooks("AutomaticPropertyUnderwriter.xlsm").Worksheets("Data_outputs").Range("A85")
+    
+    Workbooks("OutputData.xlsx").Worksheets("Sheet_11").Range("A1:D10").Copy _
+    Workbooks("AutomaticPropertyUnderwriter.xlsm").Worksheets("Data_outputs").Range("A95")
+    
+    Workbooks("OutputData.xlsx").Worksheets("Sheet_14").Range("A1:D10").Copy _
+    Workbooks("AutomaticPropertyUnderwriter.xlsm").Worksheets("Data_outputs").Range("A105")
+    
+    Workbooks("OutputData").Close _
+    SaveChanges:=True
+        
+    
+    'Webscrape property listing main photo
+    Website = URL
+    Set request = CreateObject("MSXML2.XMLHTTP")
+    request.Open "GET", Website, False
+    request.setRequestHeader "If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT"
+    request.send
+    response = StrConv(request.responseBody, vbUnicode)
+    html.body.innerHTML = response
+    address = html.getElementsByTagName("img")(2).src
+    On Error Resume Next
+    Dim r As Range
+    Set wsmain = Sheets("Property Details")
+    Set r = wsmain.Range("F3")
+    Dim v As Variant
+    v = address
+    For Each pic In wsmain.Pictures
+        pic.Delete
+    Next pic
+    
+    With wsmain.Pictures.Insert(v)
+        .ShapeRange.LockAspectRatio = True
+        .Left = wsmain.Range("F3").Left
+        .Top = wsmain.Range("F3").Top
+        .Height = wsmain.Range("F3:F19").Height
+    End With
+    
+    Set wsmain = Sheets("Comps")
+    Set r = wsmain.Range("C3")
+    For Each pic In wsmain.Pictures
+        pic.Delete
+    Next pic
+    
+    With wsmain.Pictures.Insert(v)
+        .ShapeRange.LockAspectRatio = True
+        .Height = wsmain.Range("C3:C11").Height * 0.95
+        .Width = wsmain.Range("C3:C11").Width * 0.95
+        .Left = r.Left + ((wsmain.Range("C3:C3").Width - .Width) / 2)
+        .Top = r.Top + ((wsmain.Range("C3:C11").Height - .Height) / 2)
+        If .Height > wsmain.Range("C3:C11").Height Then
+            .Height = wsmain.Range("C3:C11").Height * 0.95
+            .Left = r.Left + ((wsmain.Range("C3:C3").Width - .Width) / 2)
+            .Top = r.Top + ((wsmain.Range("C3:C11").Height - .Height) / 2)
+        Else
+            .Top = r.Top + ((wsmain.Range("C3:C11").Height - .Height) / 2)
+        End If
+    End With
+
+    'Comp 1
+    Website = link1
+    Set request = CreateObject("MSXML2.XMLHTTP")
+    request.Open "GET", Website, False
+    request.setRequestHeader "If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT"
+    request.send
+    response = StrConv(request.responseBody, vbUnicode)
+    html.body.innerHTML = response
+    address = html.getElementsByTagName("img")(2).src
+    On Error Resume Next
+    Set wsmain = Sheets("Comps")
+    Set r = wsmain.Range("D3")
+    v = address
+    
+    With wsmain.Pictures.Insert(v)
+        .ShapeRange.LockAspectRatio = True
+        .Height = wsmain.Range("D3:D11").Height * 0.95
+        .Width = wsmain.Range("D3:D11").Width * 0.95
+        .Left = r.Left + ((wsmain.Range("D3:D3").Width - .Width) / 2)
+        .Top = r.Top + ((wsmain.Range("D3:D11").Height - .Height) / 2)
+        If .Height > wsmain.Range("D3:D11").Height Then
+            .Height = wsmain.Range("D3:D11").Height * 0.95
+            .Left = r.Left + ((wsmain.Range("D3:D3").Width - .Width) / 2)
+            .Top = r.Top + ((wsmain.Range("D3:D11").Height - .Height) / 2)
+        Else
+            .Top = r.Top + ((wsmain.Range("D3:D11").Height - .Height) / 2)
+        End If
+    End With
+    
+    'Comp 2
+    Website = link2
+    Set request = CreateObject("MSXML2.XMLHTTP")
+    request.Open "GET", Website, False
+    request.setRequestHeader "If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT"
+    request.send
+    response = StrConv(request.responseBody, vbUnicode)
+    html.body.innerHTML = response
+    address = html.getElementsByTagName("img")(2).src
+    On Error Resume Next
+    Set wsmain = Sheets("Comps")
+    Set r = wsmain.Range("E3")
+    v = address
+    
+    With wsmain.Pictures.Insert(v)
+        .ShapeRange.LockAspectRatio = True
+        .Height = wsmain.Range("E3:E11").Height * 0.95
+        .Width = wsmain.Range("E3:E11").Width * 0.95
+        .Left = r.Left + ((wsmain.Range("E3:E3").Width - .Width) / 2)
+        .Top = r.Top + ((wsmain.Range("E3:E11").Height - .Height) / 2)
+        If .Height > wsmain.Range("E3:E11").Height Then
+            .Height = wsmain.Range("E3:E11").Height * 0.95
+            .Left = r.Left + ((wsmain.Range("E3:E3").Width - .Width) / 2)
+            .Top = r.Top + ((wsmain.Range("E3:E11").Height - .Height) / 2)
+        Else
+            .Top = r.Top + ((wsmain.Range("E3:E11").Height - .Height) / 2)
+        End If
+    End With
+    
+    'Comp 3
+    Website = link3
+    Set request = CreateObject("MSXML2.XMLHTTP")
+    request.Open "GET", Website, False
+    request.setRequestHeader "If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT"
+    request.send
+    response = StrConv(request.responseBody, vbUnicode)
+    html.body.innerHTML = response
+    address = html.getElementsByTagName("img")(2).src
+    On Error Resume Next
+    Set wsmain = Sheets("Comps")
+    Set r = wsmain.Range("F3")
+    v = address
+    
+    With wsmain.Pictures.Insert(v)
+        .ShapeRange.LockAspectRatio = True
+        .Height = wsmain.Range("F3:F11").Height * 0.95
+        .Width = wsmain.Range("F3:F11").Width * 0.95
+        .Left = r.Left + ((wsmain.Range("F3:F3").Width - .Width) / 2)
+        .Top = r.Top + ((wsmain.Range("F3:F11").Height - .Height) / 2)
+        If .Height > wsmain.Range("F3:F11").Height Then
+            .Height = wsmain.Range("F3:F11").Height * 0.95
+            .Left = r.Left + ((wsmain.Range("F3:F3").Width - .Width) / 2)
+            .Top = r.Top + ((wsmain.Range("F3:F11").Height - .Height) / 2)
+        Else
+            .Top = r.Top + ((wsmain.Range("F3:F11").Height - .Height) / 2)
+        End If
+    End With
+    
+    
+    Dim Building_Class As String
+    If WorksheetFunction.IsNA(Sheets("Market Analysis").Range("D19")) Then
+        Sheets("Data_outputs").Range("H24").Value = "Building Class"
+        Building_Class = InputBox("Building Class was not found. Please enter Building Class A, B, or C below.")
+        Sheets("Data_outputs").Range("I24").Value = Building_Class
+    End If
+    
+    If IsEmpty(Sheets("Comps").Range("C25").Value) = False Then
+            Sheets("halfwaybox").Range("C13").Value = Sheets("Comps").Range("C25").Value * 1000
+        Else
+            Sheets("halfwaybox").Range("C13").Value = Sheets("Market Analysis").Range("G10").Value * 1000
+    End If
+    
+    If Sheets("halfwaybox").Range("G40").Value >= 0.2 Then
+        Sheets("halfwaybox").Range("C6").Value = True
+        Sheets("halfwaybox").Range("C14").Value = 5
+        Sheets("halfwaybox").Range("C15").Value = 2
+    Else
+        Sheets("halfwaybox").Range("C6").Value = False
+        Sheets("halfwaybox").Range("C14").Value = 10
+    End If
+    
+    Sheets("halfwaybox").Range("C10").Value = 130
+    Sheets("halfwaybox").Range("C16").Value = 20
+    Sheets("halfwaybox").Range("C41").Value = 100
+    Sheets("halfwaybox").Range("C11").Value = 100
+
+
+    Dim DebtFinancing As Boolean
+    Dim EquityFinancing As Boolean
+    Dim Renovations As Boolean
+    Dim HoldTerm As Integer
+    Dim RentEscalator As Integer
+    Dim Year1PGI As Integer
+    Dim ExitCapRate As Integer
+    Dim RenovationEscalator As Integer
+    Dim RenovationTerm As Integer
+    Dim RenovationCost As Integer
+    Dim Loan1 As Integer
+    Dim Loan2 As Integer
+    
+    DebtFinancing = Sheets("halfwaybox").Range("C7").Value
+    EquityFinancing = Sheets("halfwaybox").Range("c8").Value
+    Renovations = Sheets("halfwaybox").Range("c6").Value
+    HoldTerm = Sheets("halfwaybox").Range("c14").Value
+    RentEscalator = Sheets("halfwaybox").Range("c10").Value
+    Year1PGI = Sheets("halfwaybox").Range("c41").Value
+    ExitCapRate = Sheets("halfwaybox").Range("c13").Value
+    RenovationEscalator = Sheets("halfwaybox").Range("c11").Value
+    RenovationTerm = Sheets("halfwaybox").Range("c15").Value
+    RenovationCost = Sheets("halfwaybox").Range("c16").Value
+    Loan1 = Sheets("halfwaybox").Range("c18").Value
+    Loan2 = Sheets("halfwaybox").Range("c19").Value
+    
+    'variance analysis
+
+    Dim x As Boolean
+    x = Sheets("halfwaybox").Range("C6").Value
+    
+    Sheets("Variance Analysis").Range("D2:M12").ClearContents
+    
+    Dim k As Integer
+    
+    i = 1
+    j = 1
+    k = 1
+    
+    Sheets("halfwaybox").Range("C6").Value = True
+    
+    For i = 1 To 10
+        Sheets("halfwaybox").Range("C14").Value = i
+        For j = 1 To i - 1
+            Sheets("halfwaybox").Range("C15").Value = j
+            Sheets("Variance Analysis").Range("C12").Offset(-j, i).Value = Sheets("Dashboard").Range("F14").Value
+        Next j
+    Next i
+    
+    Sheets("halfwaybox").Range("C6").Value = False
+    For k = 1 To 10
+        Sheets("halfwaybox").Range("C14").Value = k
+        Sheets("Variance Analysis").Range("C12").Offset(0, k).Value = Sheets("Dashboard").Range("F14").Value
+    Next k
+    
+    Sheets("Variance Analysis").Range("Q3:Z12").ClearContents
+    
+    Dim l As Integer
+    Dim m As Integer
+    Dim REsc As Integer
+    
+    For l = 1 To 10
+        Sheets("halfwaybox").Range("C18").Value = l * 10
+        For m = 1 To 10
+            Sheets("halfwaybox").Range("C19").Value = m * 10
+            Sheets("Variance Analysis").Range("P13").Offset(-m, l).Value = Sheets("Dashboard").Range("F15").Value
+        Next m
+    Next l
+    
+    Sheets("halfwaybox").Range("C6").Value = x
+    
+    Sheets("halfwaybox").Range("C7").Value = DebtFinancing
+    Sheets("halfwaybox").Range("c8").Value = EquityFinancing
+    Sheets("halfwaybox").Range("c6").Value = Renovations
+    Sheets("halfwaybox").Range("c14").Value = HoldTerm
+    Sheets("halfwaybox").Range("c10").Value = RentEscalator
+    Sheets("halfwaybox").Range("c41").Value = Year1PGI
+    Sheets("halfwaybox").Range("c13").Value = ExitCapRate
+    Sheets("halfwaybox").Range("c11").Value = RenovationEscalator
+    Sheets("halfwaybox").Range("c15").Value = RenovationTerm
+    Sheets("halfwaybox").Range("c16").Value = RenovationCost
+    Sheets("halfwaybox").Range("c18").Value = Loan1
+    Sheets("halfwaybox").Range("c19").Value = Loan2
+    
+    Worksheets("Property Details").Activate
+
+    MsgBox "Sample Data Uploaded"
+
+End Sub
+
+
